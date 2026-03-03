@@ -1,0 +1,266 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // bcrypt hashed
+  name      String
+  role      Role     @default(NURSE)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  auditLogs AuditLog[]
+  visits    Visit[]  @relation("AssignedDoctor")
+
+  @@index([email])
+  @@index([role])
+}
+
+enum Role {
+  ADMIN
+  NURSE
+  LAB
+  RADIOLOGY
+  DOCTOR
+}
+
+// ============================================
+// PATIENT & VISIT MANAGEMENT
+// ============================================
+
+model Patient {
+  id           String   @id @default(cuid())
+  mrn          String   @unique // Medical Record Number
+  firstName    String
+  lastName     String
+  dateOfBirth  DateTime
+  gender       Gender
+  phone        String?
+  email        String?
+  company      String?
+  idNumber     String?  // KTP/ID
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  visits       Visit[]
+
+  @@index([mrn])
+  @@index([company])
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model Visit {
+  id              String      @id @default(cuid())
+  visitNumber     String      @unique // Auto-generated: MCU-YYYYMMDD-001
+  patientId       String
+  patient         Patient     @relation(fields: [patientId], references: [id])
+  packageId       String
+  package         MCUPackage  @relation(fields: [packageId], references: [id])
+  status          VisitStatus @default(WAITING)
+  assignedDoctorId String?
+  assignedDoctor  User?       @relation("AssignedDoctor", fields: [assignedDoctorId], references: [id])
+  checkInTime     DateTime    @default(now())
+  completedAt     DateTime?
+  finalDecision   FitStatus?
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  steps          VisitStep[]
+  results        MedicalResult[]
+  auditLogs      AuditLog[]
+
+  @@index([patientId])
+  @@index([packageId])
+  @@index([status])
+  @@index([visitNumber])
+}
+
+enum VisitStatus {
+  WAITING
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+enum FitStatus {
+  FIT
+  FIT_WITH_CONDITIONS
+  UNFIT
+  PENDING_REVIEW
+}
+
+// ============================================
+// DYNAMIC MCU PACKAGES
+// ============================================
+
+model MCUPackage {
+  id          String   @id @default(cuid())
+  name        String   // e.g., "Executive Checkup", "Basic Health"
+  code        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  steps       PackageStep[]
+  visits      Visit[]
+
+  @@index([code])
+}
+
+model PackageStep {
+  id          String   @id @default(cuid())
+  packageId   String
+  package     MCUPackage @relation(fields: [packageId], references: [id])
+  department  Department
+  stepName    String   // e.g., "Hematology", "Chest X-Ray"
+  stepOrder   Int      // Execution order
+  isRequired  Boolean  @default(true)
+  instructions String? // Special instructions for this step
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  visitSteps  VisitStep[]
+
+  @@unique([packageId, stepOrder])
+  @@index([department])
+}
+
+enum Department {
+  NURSING
+  LABORATORY
+  RADIOLOGY
+  CARDIOLOGY
+  PULMONOLOGY
+  GENERAL_DOCTOR
+}
+
+// ============================================
+// VISIT EXECUTION (Step-based Workflow)
+// ============================================
+
+model VisitStep {
+  id            String      @id @default(cuid())
+  visitId       String
+  visit         Visit       @relation(fields: [visitId], references: [id])
+  packageStepId String
+  packageStep   PackageStep @relation(fields: [packageStepId], references: [id])
+  status        StepStatus  @default(WAITING)
+  startedAt     DateTime?
+  completedAt   DateTime?
+  performedBy   String?     // User ID who performed this step
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  results       MedicalResult[]
+
+  @@unique([visitId, packageStepId])
+  @@index([visitId])
+  @@index([status])
+}
+
+enum StepStatus {
+  WAITING
+  IN_PROGRESS
+  DONE
+  SKIPPED
+}
+
+// ============================================
+// MEDICAL RESULTS
+// ============================================
+
+model MedicalResult {
+  id          String   @id @default(cuid())
+  visitId     String
+  visit       Visit    @relation(fields: [visitId], references: [id])
+  visitStepId String?
+  visitStep   VisitStep? @relation(fields: [visitStepId], references: [id])
+  department  Department
+  resultType  ResultType
+  resultData  Json     // Flexible structured data per department
+  interpretedBy String? // User ID
+  interpretedAt DateTime?
+  isReviewed  Boolean  @default(false)
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([visitId])
+  @@index([visitStepId])
+  @@index([department])
+}
+
+enum ResultType {
+  NUMERIC      // Lab values with units
+  TEXT         // Doctor notes
+  BOOLEAN      // Yes/No findings
+  STRUCTURED   // Complex nested data (X-ray findings)
+  ATTACHMENT   // File references (stored locally)
+}
+
+// ============================================
+// AUDIT LOGGING
+// ============================================
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  visitId    String?
+  visit      Visit?   @relation(fields: [visitId], references: [id])
+  action     AuditAction
+  entityType EntityType
+  entityId   String
+  oldValue   Json?    // Previous state
+  newValue   Json?    // New state
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([visitId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  STATUS_CHANGE
+  RESULT_SUBMIT
+  RESULT_REVIEW
+  LOGIN
+  LOGOUT
+  PERMISSION_DENIED
+}
+
+enum EntityType {
+  PATIENT
+  VISIT
+  VISIT_STEP
+  MEDICAL_RESULT
+  USER
+  PACKAGE
+}
