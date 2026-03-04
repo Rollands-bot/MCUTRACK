@@ -1,29 +1,52 @@
-import { getSession, logout } from '@/lib/session'
-import { logoutAction } from '@/actions/auth-actions'
+'use client'
 
-export default async function Header() {
-  const session = await getSession()
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { logoutApi } from '@/lib/api-client'
+
+export default function Header() {
+  const router = useRouter()
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    // Get user from session storage or fetch from API
+    const fetchUser = async () => {
+      try {
+        const response = await fetch('/api/me')
+        if (response.ok) {
+          const data = await response.json()
+          setUser(data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch user:', error)
+      }
+    }
+    fetchUser()
+  }, [])
+
+  const handleLogout = async () => {
+    await logoutApi()
+    router.push('/login')
+  }
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">
-            Welcome, {session?.name || 'User'}
+            Welcome, {user?.name || 'User'}
           </h2>
-          <p className="text-sm text-gray-500">{session?.role || ''}</p>
+          <p className="text-sm text-gray-500">{user?.role || ''}</p>
         </div>
 
         <div className="flex items-center space-x-4">
-          <span className="text-sm text-gray-600">{session?.email}</span>
-          <form action={logoutAction}>
-            <button
-              type="submit"
-              className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            >
-              Logout
-            </button>
-          </form>
+          <span className="text-sm text-gray-600">{user?.email || ''}</span>
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            Logout
+          </button>
         </div>
       </div>
     </header>

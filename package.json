@@ -4,13 +4,20 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:all": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "next dev",
+    "dev:backend": "cd backend && go run main.go",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "db:seed": "node prisma/seed.js"
+    "db:seed": "node prisma/seed.js",
+    "backend:download": "cd backend && go mod download",
+    "backend:seed": "cd backend && go run cmd/seed/main.go",
+    "backend:build": "cd backend && go build -o mcutrack-api.exe",
+    "backend:run": "cd backend && ./mcutrack-api.exe"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
@@ -30,6 +37,7 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "concurrently": "^8.2.2",
     "eslint": "^9.0.0",
     "eslint-config-next": "15.0.0",
     "prisma": "^6.19.2",

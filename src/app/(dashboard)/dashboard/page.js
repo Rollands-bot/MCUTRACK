@@ -1,10 +1,29 @@
-import { getDashboardStats, getVisits } from '@/actions/visit-actions'
-import { getSession } from '@/lib/session'
+'use client'
 
-export default async function DashboardPage() {
-  const session = await getSession()
-  const stats = await getDashboardStats()
-  const recentVisits = await getVisits()
+import { useEffect, useState } from 'react'
+import { getDashboardStatsApi, getVisitsApi } from '@/lib/api-client'
+
+export default function DashboardPage() {
+  const [stats, setStats] = useState({ waiting: 0, inProgress: 0, done: 0, today: 0 })
+  const [recentVisits, setRecentVisits] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadData() {
+      const [statsData, visitsData] = await Promise.all([
+        getDashboardStatsApi(),
+        getVisitsApi(),
+      ])
+      setStats(statsData)
+      setRecentVisits(visitsData || [])
+      setLoading(false)
+    }
+    loadData()
+  }, [])
+
+  if (loading) {
+    return <div className="text-center py-12">Loading...</div>
+  }
 
   return (
     <div>

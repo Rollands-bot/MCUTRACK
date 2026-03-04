@@ -25,34 +25,97 @@ MCUTrack is an offline-first MCU management system designed for hospital interna
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
+### Frontend
+| Component | Technology |
+|-----------|------------|
 | Framework | Next.js 15 (App Router) |
 | Language | JavaScript |
-| ORM | Prisma 6 |
-| Database | PostgreSQL (self-hosted) |
-| Auth | Session-based (JWT) |
-| Styling | Tailwind CSS |
+| UI Library | React 19 |
+| Styling | Tailwind CSS 4 |
 | Validation | Zod |
+
+### Backend
+| Component | Technology |
+|-----------|------------|
+| Language | Go 1.21+ |
+| Framework | Gin |
+| ORM | GORM |
+| Database | PostgreSQL (self-hosted) |
+| Auth | JWT (JSON Web Token) |
+| Password | bcrypt |
 
 ---
 
 ## Quick Start
 
+### Prerequisites
+1. **Node.js 18+** - For frontend
+2. **Go 1.21+** - For backend
+3. **PostgreSQL 15+** - Database
+
+### 1. Install Dependencies
+
 ```bash
-# Install dependencies
+# Frontend dependencies
 npm install
 
-# Setup database
-npm run db:generate
-npm run db:push
-npm run db:seed
-
-# Start development
-npm run dev
+# Backend dependencies (in backend folder)
+cd backend
+go mod download
+cd ..
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+### 2. Setup Database
+
+```bash
+# Create database
+createdb mcutrack
+
+# Or using psql
+psql -U postgres
+CREATE DATABASE mcutrack;
+\q
+```
+
+### 3. Configure Environment
+
+**Frontend** (`.env.local`):
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8080/api
+```
+
+**Backend** (`backend/.env`):
+```env
+DATABASE_URL=postgres://postgres:password@localhost:5432/mcutrack?sslmode=disable
+SERVER_PORT=8080
+JWT_SECRET=your-secret-key-change-in-production
+ENV=development
+```
+
+### 4. Seed Database
+
+```bash
+npm run backend:seed
+```
+
+This creates:
+- 5 default users (Admin, Nurse, Lab, Radiology, Doctor)
+- 3 MCU packages with steps
+
+### 5. Start Development
+
+```bash
+# Start both frontend and backend
+npm run dev:all
+
+# Or separately:
+# Frontend only: npm run dev:frontend
+# Backend only: npm run dev:backend
+```
+
+Open [http://localhost:3000](http://localhost:3000) for the frontend.
+
+Backend API runs on [http://localhost:8080](http://localhost:8080).
 
 ---
 
@@ -70,7 +133,9 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## Documentation
 
-- **[SETUP.md](SETUP.md)** - Installation guide
+- **[GO_SETUP.md](GO_SETUP.md)** - Go backend setup guide
+- **[MIGRATION.md](MIGRATION.md)** - Migration guide from Node.js to Go
+- **[SETUP.md](SETUP.md)** - Detailed installation guide
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - System design
 - **[ROLES.md](ROLES.md)** - User roles & responsibilities
 - **[SECURITY.md](SECURITY.md)** - Security practices
@@ -118,40 +183,99 @@ Open [http://localhost:3000](http://localhost:3000)
 - MedicalResult (test results)
 - AuditLog (compliance)
 
-See `prisma/schema.prisma` for full schema.
+See `prisma/schema.prisma` for the original schema (reference only).  
+Go models are in `backend/models/models.go`.
+
+---
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/login` - Login
+- `POST /api/logout` - Logout
+- `GET /api/me` - Get current user
+
+### Patients
+- `GET /api/patients?search=` - List patients
+- `POST /api/patients` - Create patient
+- `GET /api/patients/:id` - Get patient by ID
+- `PUT /api/patients/:id` - Update patient
+
+### Visits
+- `GET /api/visits?status=` - List visits
+- `POST /api/visits` - Create visit
+- `GET /api/visits/:id` - Get visit by ID
+- `GET /api/visits/:id/workflow` - Get visit workflow
+- `PATCH /api/visits/:id/status` - Update visit status
+- `PATCH /api/visits/steps/:stepId/status` - Update step status
+- `GET /api/visits/dashboard/stats` - Dashboard statistics
+
+### Packages
+- `GET /api/packages` - List packages
+- `POST /api/packages` - Create package
+- `GET /api/packages/:id` - Get package by ID
+- `PATCH /api/packages/:id/toggle` - Toggle package status
+
+### Admin
+- `GET /api/admin/audit-logs` - Get audit logs
+
+---
+
+## Development Commands
+
+```bash
+# Frontend
+npm run dev:frontend     # Start Next.js dev server
+npm run build            # Build for production
+npm run start            # Start production server
+npm run lint             # Run ESLint
+
+# Backend
+npm run dev:backend      # Start Go dev server
+npm run backend:download # Download Go dependencies
+npm run backend:seed     # Seed database
+npm run backend:build    # Build Go binary
+npm run backend:run      # Run Go binary
+
+# Both
+npm run dev:all          # Start frontend + backend
+```
+
+---
+
+## Project Structure
+
+```
+MCUTrack/
+├── backend/                 # Go backend
+│   ├── main.go             # Entry point
+│   ├── go.mod              # Go module
+│   ├── .env                # Environment config
+│   ├── config/             # Configuration
+│   ├── models/             # Database models
+│   ├── handlers/           # API handlers
+│   ├── middleware/         # Auth middleware
+│   └── cmd/seed/           # Database seeder
+├── src/                    # Next.js frontend
+│   ├── app/                # Pages (App Router)
+│   ├── components/         # React components
+│   └── lib/
+│       └── api-client.js   # API client
+├── prisma/                 # Prisma schema (reference)
+└── package.json            # Node dependencies
+```
 
 ---
 
 ## Security
 
 - 🔐 Password hashing (bcrypt)
-- 🔐 Session-based authentication
-- 🔐 Role-based access control
+- 🔐 JWT-based authentication
+- 🔐 Role-based access control (RBAC)
 - 🔐 Audit logging (immutable)
-- 🔐 Input validation (Zod)
-- 🔐 SQL injection prevention (Prisma)
-
----
-
-## Development
-
-```bash
-# Generate Prisma client
-npm run db:generate
-
-# Update database schema
-npm run db:push
-
-# Seed data
-npm run db:seed
-
-# Open Prisma Studio (DB browser)
-npm run db:studio
-
-# Production build
-npm run build
-npm start
-```
+- 🔐 Input validation
+- 🔐 SQL injection prevention (GORM)
+- 🔐 CORS configuration
 
 ---
 
@@ -159,12 +283,26 @@ npm start
 
 MCUTrack is designed for **local hospital server** deployment:
 
-1. Install PostgreSQL on hospital server
-2. Deploy Next.js application
-3. Configure firewall for local network access
-4. Set up automated backups
+### Backend Deployment
 
-See [SETUP.md](SETUP.md) for detailed deployment guide.
+```bash
+cd backend
+go build -o mcutrack-api
+
+# Deploy binary to server
+# Run as systemd service or Docker container
+```
+
+### Frontend Deployment
+
+```bash
+npm run build
+npm start
+```
+
+### Docker (Optional)
+
+See `backend/Dockerfile` for containerization.
 
 ---
 
@@ -177,3 +315,16 @@ Proprietary - Hospital Internal Use Only
 ## Support
 
 For technical support, contact the MCUTrack development team.
+
+---
+
+## Changelog
+
+### v2.0.0 (March 2026)
+- ✅ Migrated backend from Node.js to Go
+- ✅ Improved performance with Gin framework
+- ✅ JWT-based authentication
+- ✅ Better separation of concerns
+
+### v1.0.0
+- Initial release with Next.js full-stack

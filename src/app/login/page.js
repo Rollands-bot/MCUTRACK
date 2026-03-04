@@ -1,20 +1,33 @@
 'use client'
 
-import { useActionState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { loginAction } from '@/actions/auth-actions'
+import { loginApi } from '@/lib/api-client'
 
 export default function LoginPage() {
   const router = useRouter()
-  const [state, action, isPending] = useActionState(async (prev, formData) => {
-    return loginAction(formData)
-  }, null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  useEffect(() => {
-    if (state?.success) {
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    setIsLoading(true)
+
+    const formData = new FormData(e.target)
+    const email = formData.get('email')
+    const password = formData.get('password')
+
+    const result = await loginApi(email, password)
+
+    if (result?.success) {
       router.push('/')
+    } else {
+      setError(result?.error || 'Login failed')
     }
-  }, [state, router])
+
+    setIsLoading(false)
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -24,7 +37,7 @@ export default function LoginPage() {
           <p className="text-gray-600 mt-2">Medical Check-Up Management System</p>
         </div>
 
-        <form action={action} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
               Email
@@ -53,18 +66,18 @@ export default function LoginPage() {
             />
           </div>
 
-          {state?.error && (
+          {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {state.error}
+              {error}
             </div>
           )}
 
           <button
             type="submit"
-            disabled={isPending}
+            disabled={isLoading}
             className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {isPending ? 'Signing in...' : 'Sign In'}
+            {isLoading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
