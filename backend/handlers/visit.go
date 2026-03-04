@@ -55,7 +55,7 @@ func CreateVisit(c *gin.Context) {
 		visitStep := models.VisitStep{
 			VisitID:       visit.ID,
 			PackageStepID: pkgStep.ID,
-			Status:        models.VisitStatusWaiting,
+			Status:        models.StepStatusWaiting,
 		}
 		models.DB.Create(&visitStep)
 	}

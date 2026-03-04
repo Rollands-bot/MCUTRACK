@@ -23,6 +23,7 @@
     "seed": "node prisma/seed.js"
   },
   "dependencies": {
+    "@tailwindcss/postcss": "^4.2.1",
     "@tailwindcss/vite": "^4.2.1",
     "bcryptjs": "^2.4.3",
     "jose": "^6.1.3",

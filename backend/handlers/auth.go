@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"time"
 
 	"mcu-track/middleware"
 	"mcu-track/models"
@@ -153,9 +152,4 @@ func logAudit(c *gin.Context, userID, visitID string, action models.AuditAction,
 	}
 
 	models.DB.Create(&audit)
-}
-
-func interfaceToJSON(v interface{}) string {
-	// Simple implementation - in production use json.Marshal
-	return ""
 }

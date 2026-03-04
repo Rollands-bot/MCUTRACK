@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"time"
 
 	"mcu-track/models"
 
@@ -74,10 +73,8 @@ func CreatePackage(c *gin.Context) {
 }
 
 func GetPackages(c *gin.Context) {
-	var packages []models.MCUPackage
-	
 	query := models.DB.Where("is_active = ?", true)
-	
+
 	// Preload steps and count visits
 	type PackageWithCount struct {
 		models.MCUPackage
