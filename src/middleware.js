@@ -4,11 +4,11 @@ const publicPaths = ['/login']
 
 // Role-based route access
 const roleRoutes = {
-  ADMIN: ['/admin', '/patients', '/visits', '/packages', '/reports', '/departments'],
-  DOCTOR: ['/departments/doctor', '/visits', '/patients', '/reports'],
-  NURSE: ['/departments/nursing', '/visits', '/patients'],
-  LAB: ['/departments/laboratory', '/visits'],
-  RADIOLOGY: ['/departments/radiology', '/visits'],
+  ADMIN: ['/admin', '/dashboard', '/patients', '/visits', '/packages', '/reports', '/departments'],
+  DOCTOR: ['/dashboard', '/departments/doctor', '/visits', '/patients', '/reports'],
+  NURSE: ['/dashboard', '/departments/nursing', '/visits', '/patients'],
+  LAB: ['/dashboard', '/departments/laboratory', '/visits'],
+  RADIOLOGY: ['/dashboard', '/departments/radiology', '/visits'],
 }
 
 export async function middleware(request) {

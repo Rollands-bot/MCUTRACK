@@ -22,19 +22,8 @@ export default function LoginPage() {
     console.log('Login result:', result)
 
     if (result?.success) {
-      // Redirect based on role
-      const role = result.user?.role || 'ADMIN'
-      console.log('User role:', role)
-      const roleRedirects = {
-        ADMIN: '/admin',
-        DOCTOR: '/departments/doctor',
-        NURSE: '/departments/nursing',
-        LAB: '/departments/laboratory',
-        RADIOLOGY: '/departments/radiology',
-      }
-      const redirectPath = roleRedirects[role] || '/dashboard'
-      console.log('Redirecting to:', redirectPath)
-      router.push(redirectPath)
+      // Redirect all users to dashboard
+      router.push('/dashboard')
     } else {
       setError(result?.error || 'Login failed')
     }
