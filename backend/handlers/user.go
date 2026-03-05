@@ -20,7 +20,7 @@ type CreateUserRequest struct {
 
 type UserResponse struct {
 	ID        string      `json:"id"`
-	Email     string      `json:"email"`
+	Username  string      `json:"username"`
 	Name      string      `json:"name"`
 	Role      models.Role `json:"role"`
 	IsActive  bool        `json:"isActive"`
