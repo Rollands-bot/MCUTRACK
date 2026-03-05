@@ -1,7 +1,28 @@
-import { getVisits } from '@/actions/visit-actions'
+'use client'
 
-export default async function ReportsPage() {
-  const completedVisits = await getVisits('DONE')
+import { useEffect, useState } from 'react'
+import { getVisitsApi } from '@/lib/api-client'
+
+export default function ReportsPage() {
+  const [completedVisits, setCompletedVisits] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const loadVisits = async () => {
+      const data = await getVisitsApi('DONE')
+      setCompletedVisits(data || [])
+      setLoading(false)
+    }
+    loadVisits()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -42,13 +63,13 @@ export default async function ReportsPage() {
                     {visit.visitNumber}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    {visit.patient.firstName} {visit.patient.lastName}
+                    {visit.patient?.firstName} {visit.patient?.lastName}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    {visit.patient.company || '-'}
+                    {visit.patient?.company || '-'}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    {visit.package.name}
+                    {visit.package?.name}
                   </td>
                   <td className="px-6 py-4">
                     {visit.finalDecision ? (
@@ -64,7 +85,7 @@ export default async function ReportsPage() {
                     )}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
-                    {visit.completedAt 
+                    {visit.completedAt
                       ? new Date(visit.completedAt).toLocaleDateString()
                       : '-'
                     }

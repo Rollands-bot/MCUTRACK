@@ -30,35 +30,35 @@ func main() {
 func seedUsers() {
 	users := []models.User{
 		{
-			Email:    "admin@hospital.com",
+			Username: "admin",
 			Password: hashPassword("admin123"),
 			Name:     "Administrator",
 			Role:     models.RoleAdmin,
 			IsActive: true,
 		},
 		{
-			Email:    "nurse@hospital.com",
+			Username: "nurse",
 			Password: hashPassword("admin123"),
 			Name:     "Nurse Station",
 			Role:     models.RoleNurse,
 			IsActive: true,
 		},
 		{
-			Email:    "lab@hospital.com",
+			Username: "lab",
 			Password: hashPassword("admin123"),
 			Name:     "Lab Technician",
 			Role:     models.RoleLab,
 			IsActive: true,
 		},
 		{
-			Email:    "radiology@hospital.com",
+			Username: "radiology",
 			Password: hashPassword("admin123"),
 			Name:     "Radiology Dept",
 			Role:     models.RoleRadiology,
 			IsActive: true,
 		},
 		{
-			Email:    "doctor@hospital.com",
+			Username: "doctor",
 			Password: hashPassword("admin123"),
 			Name:     "Dr. House",
 			Role:     models.RoleDoctor,
@@ -68,15 +68,15 @@ func seedUsers() {
 
 	for _, user := range users {
 		var existing models.User
-		if err := models.DB.Where("email = ?", user.Email).First(&existing).Error; err != nil {
+		if err := models.DB.Where("username = ?", user.Username).First(&existing).Error; err != nil {
 			// User not found, create
 			if err := models.DB.Create(&user).Error; err != nil {
-				log.Printf("Failed to create user %s: %v", user.Email, err)
+				log.Printf("Failed to create user %s: %v", user.Username, err)
 			} else {
-				log.Printf("Created user: %s (%s)", user.Email, user.Role)
+				log.Printf("Created user: %s (%s)", user.Username, user.Role)
 			}
 		} else {
-			log.Printf("User already exists: %s", existing.Email)
+			log.Printf("User already exists: %s", existing.Username)
 		}
 	}
 }

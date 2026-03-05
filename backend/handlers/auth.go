@@ -11,7 +11,7 @@ import (
 )
 
 type LoginRequest struct {
-	Email    string `json:"email" binding:"required,email"`
+	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
@@ -23,7 +23,7 @@ type LoginResponse struct {
 
 type UserDTO struct {
 	ID       string      `json:"id"`
-	Email    string      `json:"email"`
+	Username string      `json:"username"`
 	Name     string      `json:"name"`
 	Role     models.Role `json:"role"`
 }
@@ -35,14 +35,14 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// Find user
+	// Find user by username
 	var user models.User
-	if err := models.DB.Where("email = ?", req.Email).First(&user).Error; err != nil {
-		logAudit(c, "", "", models.AuditActionLogin, models.EntityTypeUser, req.Email, nil, map[string]interface{}{
+	if err := models.DB.Where("username = ?", req.Username).First(&user).Error; err != nil {
+		logAudit(c, "", "", models.AuditActionLogin, models.EntityTypeUser, req.Username, nil, map[string]interface{}{
 			"success": false,
 			"reason":  "User not found",
 		})
-		c.JSON(http.StatusUnauthorized, LoginResponse{Error: "Invalid email or password"})
+		c.JSON(http.StatusUnauthorized, LoginResponse{Error: "Invalid username or password"})
 		return
 	}
 
@@ -79,16 +79,16 @@ func Login(c *gin.Context) {
 	// Log successful login
 	logAudit(c, user.ID, "", models.AuditActionLogin, models.EntityTypeUser, user.ID, nil, map[string]interface{}{
 		"success": true,
-		"email":   user.Email,
+		"username": user.Username,
 	})
 
 	c.JSON(http.StatusOK, LoginResponse{
 		Success: true,
 		User: &UserDTO{
-			ID:    user.ID,
-			Email: user.Email,
-			Name:  user.Name,
-			Role:  user.Role,
+			ID:       user.ID,
+			Username: user.Username,
+			Name:     user.Name,
+			Role:     user.Role,
 		},
 	})
 }
@@ -105,7 +105,7 @@ func Logout(c *gin.Context) {
 
 func GetCurrentUser(c *gin.Context) {
 	userID, _ := c.Get("userID")
-	email, _ := c.Get("email")
+	username, _ := c.Get("username")
 	role, _ := c.Get("role")
 
 	var user models.User
@@ -115,10 +115,10 @@ func GetCurrentUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"id":    user.ID,
-		"email": email,
-		"name":  user.Name,
-		"role":  role,
+		"id":       user.ID,
+		"username": username,
+		"name":     user.Name,
+		"role":     role,
 	})
 }
 

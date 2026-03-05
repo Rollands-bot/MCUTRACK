@@ -13,9 +13,9 @@ import (
 )
 
 type Claims struct {
-	UserID string          `json:"userId"`
-	Email  string          `json:"email"`
-	Role   models.Role     `json:"role"`
+	UserID   string          `json:"userId"`
+	Username string          `json:"username"`
+	Role     models.Role     `json:"role"`
 	jwt.RegisteredClaims
 }
 
@@ -71,7 +71,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// Store user info in context
 		c.Set("userID", claims.UserID)
-		c.Set("email", claims.Email)
+		c.Set("username", claims.Username)
 		c.Set("role", claims.Role)
 
 		c.Next()
@@ -108,9 +108,9 @@ func RequireRole(requiredRoles ...models.Role) gin.HandlerFunc {
 
 func GenerateToken(user *models.User) (string, error) {
 	claims := &Claims{
-		UserID: user.ID,
-		Email:  user.Email,
-		Role:   user.Role,
+		UserID:   user.ID,
+		Username: user.Username,
+		Role:     user.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(8 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

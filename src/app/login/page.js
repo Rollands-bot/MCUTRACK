@@ -15,13 +15,26 @@ export default function LoginPage() {
     setIsLoading(true)
 
     const formData = new FormData(e.target)
-    const email = formData.get('email')
+    const username = formData.get('username')
     const password = formData.get('password')
 
-    const result = await loginApi(email, password)
+    const result = await loginApi(username, password)
+    console.log('Login result:', result)
 
     if (result?.success) {
-      router.push('/')
+      // Redirect based on role
+      const role = result.user?.role || 'ADMIN'
+      console.log('User role:', role)
+      const roleRedirects = {
+        ADMIN: '/admin',
+        DOCTOR: '/departments/doctor',
+        NURSE: '/departments/nursing',
+        LAB: '/departments/laboratory',
+        RADIOLOGY: '/departments/radiology',
+      }
+      const redirectPath = roleRedirects[role] || '/dashboard'
+      console.log('Redirecting to:', redirectPath)
+      router.push(redirectPath)
     } else {
       setError(result?.error || 'Login failed')
     }
@@ -56,24 +69,24 @@ export default function LoginPage() {
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email Field */}
+            {/* Username Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                Username
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
                 <input
-                  type="email"
-                  id="email"
-                  name="email"
+                  type="text"
+                  id="username"
+                  name="username"
                   required
                   className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-400 transition-all duration-200 hover:border-gray-300"
-                  placeholder="admin@hospital.com"
+                  placeholder="admin"
                 />
               </div>
             </div>
@@ -138,7 +151,7 @@ export default function LoginPage() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                 </svg>
-                <span className="font-mono">admin@hospital.com</span>
+                <span className="font-mono">admin</span>
                 <span>/</span>
                 <span className="font-mono">admin123</span>
               </div>

@@ -1,6 +1,41 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
-export default function Sidebar({ role }) {
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
+
+export default function Sidebar() {
+  const [role, setRole] = useState(null)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/me`, {
+          credentials: 'include',
+        })
+        if (response.ok) {
+          const user = await response.json()
+          setRole(user.role)
+        }
+      } catch (error) {
+        console.error('Failed to fetch user:', error)
+      }
+    }
+    fetchUser()
+  }, [])
+
+  if (!role) {
+    return (
+      <aside className="w-64 bg-gray-900 text-white min-h-screen">
+        <div className="p-6">
+          <h1 className="text-xl font-bold">MCUTrack</h1>
+          <p className="text-gray-400 text-sm mt-1">Loading...</p>
+        </div>
+      </aside>
+    )
+  }
+
   const navItems = getNavItemsForRole(role)
 
   return (
@@ -27,9 +62,14 @@ export default function Sidebar({ role }) {
 }
 
 function getNavItemsForRole(role) {
-  const commonItems = [
-    { href: '/dashboard', icon: '📊', label: 'Dashboard' },
-  ]
+  // Dashboard redirect based on role
+  const dashboardItems = {
+    ADMIN: { href: '/admin', icon: '📊', label: 'Dashboard' },
+    DOCTOR: { href: '/departments/doctor', icon: '📊', label: 'Dashboard' },
+    NURSE: { href: '/departments/nursing', icon: '📊', label: 'Dashboard' },
+    LAB: { href: '/departments/laboratory', icon: '📊', label: 'Dashboard' },
+    RADIOLOGY: { href: '/departments/radiology', icon: '📊', label: 'Dashboard' },
+  }
 
   const roleItems = {
     ADMIN: [
@@ -60,5 +100,5 @@ function getNavItemsForRole(role) {
     ],
   }
 
-  return [...commonItems, ...(roleItems[role] || [])]
+  return [dashboardItems[role] || dashboardItems.ADMIN, ...(roleItems[role] || [])]
 }

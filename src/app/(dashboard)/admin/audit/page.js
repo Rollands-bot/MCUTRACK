@@ -1,7 +1,28 @@
-import { getRecentAuditLogs } from '@/lib/audit'
+'use client'
 
-export default async function AuditPage() {
-  const logs = await getRecentAuditLogs(100)
+import { useEffect, useState } from 'react'
+import { getAuditLogsApi } from '@/lib/api-client'
+
+export default function AuditPage() {
+  const [logs, setLogs] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const loadLogs = async () => {
+      const data = await getAuditLogsApi({ limit: 100 })
+      setLogs(data || [])
+      setLoading(false)
+    }
+    loadLogs()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -53,7 +74,7 @@ export default async function AuditPage() {
                   <td className="px-6 py-4 text-sm text-gray-900">
                     <div>{log.entityType}</div>
                     <div className="text-xs text-gray-500 font-mono">
-                      {log.entityId.slice(0, 8)}...
+                      {log.entityId?.slice(0, 8)}...
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">

@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { logoutApi } from '@/lib/api-client'
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
+
 export default function Header() {
   const router = useRouter()
   const [user, setUser] = useState(null)
@@ -12,7 +14,9 @@ export default function Header() {
     // Get user from session storage or fetch from API
     const fetchUser = async () => {
       try {
-        const response = await fetch('/api/me')
+        const response = await fetch(`${API_BASE_URL}/me`, {
+          credentials: 'include',
+        })
         if (response.ok) {
           const data = await response.json()
           setUser(data)
@@ -40,7 +44,7 @@ export default function Header() {
         </div>
 
         <div className="flex items-center space-x-4">
-          <span className="text-sm text-gray-600">{user?.email || ''}</span>
+          <span className="text-sm text-gray-600">@{user?.username || ''}</span>
           <button
             onClick={handleLogout}
             className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"

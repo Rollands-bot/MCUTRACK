@@ -14,17 +14,17 @@ var DB *gorm.DB
 
 // User model
 type User struct {
-	ID        string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
-	Email     string    `gorm:"uniqueIndex;not null"`
-	Password  string    `gorm:"not null"`
-	Name      string    `gorm:"not null"`
-	Role      Role      `gorm:"type:varchar(20);not null;default:'NURSE'"`
-	IsActive  bool      `gorm:"default:true"`
-	CreatedAt time.Time `gorm:"autoCreateTime"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+	ID        string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	Username  string    `gorm:"uniqueIndex" json:"username"`
+	Password  string    `gorm:"not null" json:"-"` // Never expose password
+	Name      string    `gorm:"not null" json:"name"`
+	Role      Role      `gorm:"type:varchar(20);not null;default:'NURSE'" json:"role"`
+	IsActive  bool      `gorm:"default:true" json:"isActive"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"createdAt"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
 
-	AuditLogs []AuditLog  `gorm:"foreignKey:UserID"`
-	Visits    []Visit     `gorm:"foreignKey:AssignedDoctorID;constraint:OnDelete:SET NULL"`
+	AuditLogs []AuditLog  `gorm:"foreignKey:UserID" json:"-"`
+	Visits    []Visit     `gorm:"foreignKey:AssignedDoctorID;constraint:OnDelete:SET NULL" json:"-"`
 }
 
 type Role string
@@ -39,18 +39,18 @@ const (
 
 // Patient model
 type Patient struct {
-	ID          string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
-	MRN         string    `gorm:"uniqueIndex;not null"`
-	FirstName   string    `gorm:"not null"`
-	LastName    string    `gorm:"not null"`
-	DateOfBirth time.Time `gorm:"not null"`
-	Gender      Gender    `gorm:"type:varchar(10);not null"`
-	Phone       string
-	Email       string
-	Company     string
-	IDNumber    string
-	CreatedAt   time.Time `gorm:"autoCreateTime"`
-	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
+	ID          string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	MRN         string    `gorm:"uniqueIndex;not null" json:"mrn"`
+	FirstName   string    `gorm:"not null" json:"firstName"`
+	LastName    string    `gorm:"not null" json:"lastName"`
+	DateOfBirth time.Time `gorm:"not null" json:"dateOfBirth"`
+	Gender      Gender    `gorm:"type:varchar(10);not null" json:"gender"`
+	Phone       string    `json:"phone"`
+	Email       string    `json:"email"`
+	Company     string    `json:"company"`
+	IDNumber    string    `json:"idNumber"`
+	CreatedAt   time.Time `gorm:"autoCreateTime" json:"createdAt"`
+	UpdatedAt   time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
 
 	Visits []Visit `gorm:"foreignKey:PatientID"`
 }
@@ -214,8 +214,8 @@ type AuditLog struct {
 	Action     AuditAction  `gorm:"type:varchar(30);not null;index"`
 	EntityType EntityType   `gorm:"type:varchar(30);not null"`
 	EntityID   string       `gorm:"not null"`
-	OldValue   string       `gorm:"type:jsonb"` // JSON as string
-	NewValue   string       `gorm:"type:jsonb"` // JSON as string
+	OldValue   string       `gorm:"type:text"` // JSON as text
+	NewValue   string       `gorm:"type:text"` // JSON as text
 	IPAddress  string
 	UserAgent  string
 	CreatedAt  time.Time `gorm:"autoCreateTime;index"`

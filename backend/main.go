@@ -25,7 +25,7 @@ func main() {
 
 	// CORS middleware
 	r.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://192.168.2.253:3000")
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE, PATCH")
@@ -92,6 +92,12 @@ func main() {
 		admin.Use(middleware.RequireRole("ADMIN"))
 		{
 			admin.GET("/audit-logs", handlers.GetAuditLogs)
+			
+			// User management
+			admin.GET("/users", handlers.GetUsers)
+			admin.GET("/users/:id", handlers.GetUserByID)
+			admin.POST("/users", handlers.CreateUser)
+			admin.PATCH("/users/:id/toggle", handlers.ToggleUserStatus)
 		}
 	}
 

@@ -8,11 +8,12 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/a
 /**
  * Generic fetch wrapper with auth handling
  */
-async function fetchAPI(endpoint, options = {}) {
+export async function fetchAPI(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`
-  
+
   const config = {
     ...options,
+    credentials: 'include', // Always include cookies
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -40,13 +41,13 @@ async function fetchAPI(endpoint, options = {}) {
 // AUTH API
 // ============================================
 
-export async function loginApi(email, password) {
+export async function loginApi(username, password) {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include', // Include cookies
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ username, password }),
     })
 
     const data = await response.json()

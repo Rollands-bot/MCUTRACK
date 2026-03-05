@@ -30,17 +30,17 @@ export default function PatientsPage() {
     e.preventDefault()
     const formData = new FormData(e.target)
     const data = Object.fromEntries(formData)
-    
+
     const result = await createPatientApi({
-      mrn: data.mrn,
+      mrn: data.mrn || undefined,
       firstName: data.firstName,
       lastName: data.lastName,
-      dateOfBirth: data.dateOfBirth,
-      gender: data.gender,
-      phone: data.phone,
-      email: data.email,
-      company: data.company,
-      idNumber: data.idNumber,
+      dateOfBirth: new Date(data.dateOfBirth).toISOString(), // Convert to ISO format
+      gender: data.gender.toUpperCase(),
+      phone: data.phone || undefined,
+      email: data.email || undefined,
+      company: data.company || undefined,
+      idNumber: data.idNumber || undefined,
     })
 
     if (result?.success) {
@@ -103,8 +103,8 @@ export default function PatientsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {patients.map((patient) => (
-                <tr key={patient.id} className="hover:bg-gray-50">
+              {patients.map((patient, index) => (
+                <tr key={`${patient.id || patient.mrn || index}`} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">
                     {patient.mrn}
                   </td>

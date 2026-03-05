@@ -1,19 +1,34 @@
-import { prisma } from '@/lib/prisma'
+'use client'
 
-export default async function AdminDashboard() {
-  // Get summary statistics
-  const [userCount, packageCount, patientCount, visitCount] = await Promise.all([
-    prisma.user.count(),
-    prisma.mCUPackage.count(),
-    prisma.patient.count(),
-    prisma.visit.count(),
-  ])
+import { useEffect, useState } from 'react'
+import { getDashboardStatsApi } from '@/lib/api-client'
 
-  const stats = [
-    { label: 'Total Users', value: userCount, color: 'bg-blue-500' },
-    { label: 'MCU Packages', value: packageCount, color: 'bg-green-500' },
-    { label: 'Patients', value: patientCount, color: 'bg-yellow-500' },
-    { label: 'Total Visits', value: visitCount, color: 'bg-purple-500' },
+export default function AdminDashboard() {
+  const [stats, setStats] = useState({ waiting: 0, inProgress: 0, done: 0, today: 0 })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const loadStats = async () => {
+      const data = await getDashboardStatsApi()
+      setStats(data)
+      setLoading(false)
+    }
+    loadStats()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    )
+  }
+
+  const statCards = [
+    { label: 'Waiting', value: stats.waiting, color: 'bg-yellow-500' },
+    { label: 'In Progress', value: stats.inProgress, color: 'bg-blue-500' },
+    { label: 'Done', value: stats.done, color: 'bg-green-500' },
+    { label: 'Today', value: stats.today, color: 'bg-purple-500' },
   ]
 
   return (
@@ -25,7 +40,7 @@ export default async function AdminDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat) => (
+        {statCards.map((stat) => (
           <div key={stat.label} className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <div className={`${stat.color} w-12 h-12 rounded-lg flex items-center justify-center`}>
