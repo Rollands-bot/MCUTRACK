@@ -12,15 +12,14 @@ import (
 )
 
 type CreatePatientRequest struct {
-	MRN         string    `json:"mrn"`
-	FirstName   string    `json:"firstName" binding:"required"`
-	LastName    string    `json:"lastName" binding:"required"`
-	DateOfBirth time.Time `json:"dateOfBirth" binding:"required"`
-	Gender      string    `json:"gender" binding:"required"`
-	Phone       string    `json:"phone"`
-	Email       string    `json:"email"`
-	Company     string    `json:"company"`
-	IDNumber    string    `json:"idNumber"`
+	NIP          string `json:"nip" binding:"required"`
+	NamaLengkap  string `json:"nama_lengkap" binding:"required"`
+	TanggalLahir string `json:"tanggal_lahir" binding:"required"` // YYYY-MM-DD format
+	JenisKelamin string `json:"jenis_kelamin" binding:"required"`
+	Plant        string `json:"plant"`
+	DeptBagian   string `json:"dept_bagian"`
+	Grup         string `json:"grup"`
+	PaketMCU     string `json:"paket_mcu"`
 }
 
 func CreatePatient(c *gin.Context) {
@@ -30,40 +29,40 @@ func CreatePatient(c *gin.Context) {
 		return
 	}
 
-	// Generate MRN if not provided
-	mrn := req.MRN
-	if mrn == "" {
-		mrn = generateMRN()
+	// Validate jenis_kelamin
+	if req.JenisKelamin != "L" && req.JenisKelamin != "P" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid jenis_kelamin value. Use 'L' for Laki-laki or 'P' for Perempuan"})
+		return
 	}
 
-	// Validate gender
-	gender := models.Gender(req.Gender)
-	if gender != models.GenderMale && gender != models.GenderFemale && gender != models.GenderOther {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid gender value"})
+	// Parse tanggal_lahir
+	tanggalLahir, err := time.Parse("2006-01-02", req.TanggalLahir)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tanggal_lahir format. Use YYYY-MM-DD"})
 		return
 	}
 
 	userID, _ := c.Get("userID")
 
 	patient := models.Patient{
-		MRN:         mrn,
-		FirstName:   req.FirstName,
-		LastName:    req.LastName,
-		DateOfBirth: req.DateOfBirth,
-		Gender:      gender,
-		Phone:       req.Phone,
-		Email:       req.Email,
-		Company:     req.Company,
-		IDNumber:    req.IDNumber,
+		NIP:          req.NIP,
+		NamaLengkap:  req.NamaLengkap,
+		TanggalLahir: tanggalLahir,
+		JenisKelamin: req.JenisKelamin,
+		Plant:        req.Plant,
+		DeptBagian:   req.DeptBagian,
+		Grup:         req.Grup,
+		PaketMCU:     req.PaketMCU,
 	}
 
 	if err := models.DB.Create(&patient).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create patient"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create patient", "details": err.Error()})
 		return
 	}
 
 	logAudit(c, userID.(string), "", models.AuditActionCreate, models.EntityTypePatient, patient.ID, nil, map[string]interface{}{
-		"mrn": patient.MRN,
+		"nip":           patient.NIP,
+		"nama_lengkap":  patient.NamaLengkap,
 	})
 
 	c.JSON(http.StatusCreated, gin.H{"success": true, "patient": patient})
@@ -77,7 +76,7 @@ func GetPatients(c *gin.Context) {
 
 	if search != "" {
 		query = query.Where(
-			"mrn ILIKE ? OR first_name ILIKE ? OR last_name ILIKE ? OR company ILIKE ?",
+			"nip ILIKE ? OR nama_lengkap ILIKE ? OR plant ILIKE ? OR dept_bagian ILIKE ?",
 			"%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%",
 		)
 	}
@@ -123,20 +122,26 @@ func UpdatePatient(c *gin.Context) {
 
 	// Get old values for audit
 	oldValue := map[string]interface{}{
-		"mrn":        patient.MRN,
-		"first_name": patient.FirstName,
-		"last_name":  patient.LastName,
+		"nip":          patient.NIP,
+		"nama_lengkap": patient.NamaLengkap,
+	}
+
+	// Parse tanggal_lahir
+	tanggalLahir, err := time.Parse("2006-01-02", req.TanggalLahir)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tanggal_lahir format. Use YYYY-MM-DD"})
+		return
 	}
 
 	// Update fields
-	patient.FirstName = req.FirstName
-	patient.LastName = req.LastName
-	patient.DateOfBirth = req.DateOfBirth
-	patient.Gender = models.Gender(req.Gender)
-	patient.Phone = req.Phone
-	patient.Email = req.Email
-	patient.Company = req.Company
-	patient.IDNumber = req.IDNumber
+	patient.NIP = req.NIP
+	patient.NamaLengkap = req.NamaLengkap
+	patient.TanggalLahir = tanggalLahir
+	patient.JenisKelamin = req.JenisKelamin
+	patient.Plant = req.Plant
+	patient.DeptBagian = req.DeptBagian
+	patient.Grup = req.Grup
+	patient.PaketMCU = req.PaketMCU
 
 	if err := models.DB.Save(&patient).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update patient"})
@@ -144,20 +149,19 @@ func UpdatePatient(c *gin.Context) {
 	}
 
 	logAudit(c, userID.(string), "", models.AuditActionUpdate, models.EntityTypePatient, patient.ID, oldValue, map[string]interface{}{
-		"mrn":        patient.MRN,
-		"first_name": patient.FirstName,
-		"last_name":  patient.LastName,
+		"nip":          patient.NIP,
+		"nama_lengkap": patient.NamaLengkap,
 	})
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "patient": patient})
 }
 
-func generateMRN() string {
+func generateNIP() string {
 	now := time.Now()
 	year := now.Year()
-	
+
 	var count int64
 	models.DB.Model(&models.Patient{}).Where("extract(year from created_at) = ?", year).Count(&count)
-	
+
 	return fmt.Sprintf("%d%04d", year, count+1)
 }

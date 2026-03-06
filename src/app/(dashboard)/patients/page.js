@@ -32,15 +32,14 @@ export default function PatientsPage() {
     const data = Object.fromEntries(formData)
 
     const result = await createPatientApi({
-      mrn: data.mrn || undefined,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      dateOfBirth: new Date(data.dateOfBirth).toISOString(), // Convert to ISO format
-      gender: data.gender.toUpperCase(),
-      phone: data.phone || undefined,
-      email: data.email || undefined,
-      company: data.company || undefined,
-      idNumber: data.idNumber || undefined,
+      nip: data.nip,
+      nama_lengkap: data.nama_lengkap,
+      tanggal_lahir: data.tanggal_lahir,
+      jenis_kelamin: data.jenis_kelamin,
+      plant: data.plant || undefined,
+      dept_bagian: data.dept_bagian || undefined,
+      grup: data.grup || undefined,
+      paket_mcu: data.paket_mcu || undefined,
     })
 
     if (result?.success) {
@@ -56,12 +55,12 @@ export default function PatientsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Patients</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Data Pasien</h1>
         <button
           onClick={() => setShowForm(!showForm)}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
         >
-          + New Patient
+          + Pasien Baru
         </button>
       </div>
 
@@ -69,7 +68,7 @@ export default function PatientsPage() {
       <div className="mb-6">
         <input
           type="text"
-          placeholder="Search by MRN, name, or company..."
+          placeholder="Cari berdasarkan NIP, nama, plant, atau departemen..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900"
@@ -83,45 +82,57 @@ export default function PatientsPage() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  MRN
+                  NIP
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Name
+                  Nama Lengkap
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Gender
+                  Jenis Kelamin
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  DOB
+                  Tanggal Lahir
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Company
+                  Plant
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Phone
+                  Dept/Bagian
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Grup
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Paket MCU
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {patients.map((patient, index) => (
-                <tr key={`${patient.id || patient.mrn || index}`} className="hover:bg-gray-50">
+                <tr key={`${patient.id || patient.nip || index}`} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                    {patient.mrn}
+                    {patient.nip}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    {patient.firstName} {patient.lastName}
+                    {patient.nama_lengkap}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    {patient.gender}
+                    {patient.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    {new Date(patient.dateOfBirth).toLocaleDateString()}
+                    {new Date(patient.tanggal_lahir).toLocaleDateString('id-ID')}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    {patient.company || '-'}
+                    {patient.plant || '-'}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    {patient.phone || '-'}
+                    {patient.dept_bagian || '-'}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {patient.grup || '-'}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {patient.paket_mcu || '-'}
                   </td>
                 </tr>
               ))}
@@ -130,7 +141,7 @@ export default function PatientsPage() {
         </div>
         {patients.length === 0 && (
           <div className="px-6 py-8 text-center text-gray-500">
-            No patients found
+            Tidak ada data pasien
           </div>
         )}
       </div>
@@ -139,115 +150,107 @@ export default function PatientsPage() {
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="font-semibold text-gray-900 mb-4">Register Patient</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">Registrasi Pasien</h3>
             <form onSubmit={handleSubmit} className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  NIP *
+                </label>
+                <input
+                  type="text"
+                  name="nip"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
+                  placeholder="Masukkan NIP"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Nama Lengkap *
+                </label>
+                <input
+                  type="text"
+                  name="nama_lengkap"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
+                  placeholder="Masukkan nama lengkap"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    MRN (Optional)
+                    Tanggal Lahir *
                   </label>
                   <input
-                    type="text"
-                    name="mrn"
-                    placeholder="Auto-generated"
+                    type="date"
+                    name="tanggal_lahir"
+                    required
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Gender *
+                    Jenis Kelamin *
                   </label>
                   <select
-                    name="gender"
+                    name="jenis_kelamin"
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
                   >
-                    <option value="">Select...</option>
-                    <option value="MALE">Male</option>
-                    <option value="FEMALE">Female</option>
-                    <option value="OTHER">Other</option>
+                    <option value="">Pilih...</option>
+                    <option value="L">Laki-laki</option>
+                    <option value="P">Perempuan</option>
                   </select>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    First Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="firstName"
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Last Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="lastName"
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
-                  />
-                </div>
-              </div>
-
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Date of Birth *
-                </label>
-                <input
-                  type="date"
-                  name="dateOfBirth"
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Phone
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Company
+                  Plant
                 </label>
                 <input
                   type="text"
-                  name="company"
+                  name="plant"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
+                  placeholder="Contoh: Jakarta, Surabaya"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  ID Number
+                  Dept/Bagian
                 </label>
                 <input
                   type="text"
-                  name="idNumber"
+                  name="dept_bagian"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
+                  placeholder="Contoh: Produksi, QA, HRD"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Grup
+                </label>
+                <input
+                  type="text"
+                  name="grup"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
+                  placeholder="Contoh: Shift A, Shift B"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Paket MCU
+                </label>
+                <input
+                  type="text"
+                  name="paket_mcu"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
+                  placeholder="Contoh: Basic, Executive"
                 />
               </div>
 
@@ -256,14 +259,14 @@ export default function PatientsPage() {
                   type="submit"
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
                 >
-                  Register Patient
+                  Simpan Pasien
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm font-medium"
                 >
-                  Cancel
+                  Batal
                 </button>
               </div>
             </form>

@@ -13,7 +13,7 @@ func GetAuditLogs(c *gin.Context) {
 	var auditLogs []models.AuditLog
 
 	query := models.DB.Preload("User", func(db *gorm.DB) *gorm.DB {
-		return db.Select("id, email, name, role")
+		return db.Select("id, username, name, role")
 	}).Preload("Visit", func(db *gorm.DB) *gorm.DB {
 		return db.Select("id, visit_number")
 	}).Order("created_at DESC").Limit(100)

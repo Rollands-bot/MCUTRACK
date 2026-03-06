@@ -137,7 +137,6 @@ func logAudit(c *gin.Context, userID, visitID string, action models.AuditAction,
 	}
 
 	audit := models.AuditLog{
-		UserID:     &userID,
 		EntityType: entityType,
 		EntityID:   entityID,
 		Action:     action,
@@ -145,6 +144,11 @@ func logAudit(c *gin.Context, userID, visitID string, action models.AuditAction,
 		NewValue:   newValueJSON,
 		IPAddress:  c.ClientIP(),
 		UserAgent:  c.Request.UserAgent(),
+	}
+
+	// Only set UserID if it's not empty (avoid empty UUID string)
+	if userID != "" {
+		audit.UserID = &userID
 	}
 
 	if visitID != "" {

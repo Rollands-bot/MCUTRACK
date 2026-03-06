@@ -37,31 +37,22 @@ const (
 	RoleDoctor    Role = "DOCTOR"
 )
 
-// Patient model
+// Patient model - Custom structure for MCUTrack
 type Patient struct {
-	ID          string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
-	MRN         string    `gorm:"uniqueIndex;not null" json:"mrn"`
-	FirstName   string    `gorm:"not null" json:"firstName"`
-	LastName    string    `gorm:"not null" json:"lastName"`
-	DateOfBirth time.Time `gorm:"not null" json:"dateOfBirth"`
-	Gender      Gender    `gorm:"type:varchar(10);not null" json:"gender"`
-	Phone       string    `json:"phone"`
-	Email       string    `json:"email"`
-	Company     string    `json:"company"`
-	IDNumber    string    `json:"idNumber"`
-	CreatedAt   time.Time `gorm:"autoCreateTime" json:"createdAt"`
-	UpdatedAt   time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
+	ID            string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	NIP           string    `gorm:"uniqueIndex;not null" json:"nip"`
+	NamaLengkap   string    `gorm:"not null" json:"nama_lengkap"`
+	TanggalLahir  time.Time `gorm:"not null" json:"tanggal_lahir"`
+	JenisKelamin  string    `gorm:"type:varchar(10);not null" json:"jenis_kelamin"`
+	Plant         string    `json:"plant"`
+	DeptBagian    string    `json:"dept_bagian"`
+	Grup          string    `json:"grup"`
+	PaketMCU      string    `json:"paket_mcu"`
+	CreatedAt     time.Time `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt     time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 
 	Visits []Visit `gorm:"foreignKey:PatientID"`
 }
-
-type Gender string
-
-const (
-	GenderMale   Gender = "MALE"
-	GenderFemale Gender = "FEMALE"
-	GenderOther  Gender = "OTHER"
-)
 
 // Visit model
 type Visit struct {

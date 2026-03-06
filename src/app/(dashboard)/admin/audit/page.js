@@ -61,7 +61,7 @@ export default function AuditPage() {
                       <div>
                         <div className="font-medium">{log.user.name}</div>
                         <div className="text-xs text-gray-500">
-                          {log.user.email} ({log.user.role})
+                          @{log.user.username} ({log.user.role})
                         </div>
                       </div>
                     ) : (

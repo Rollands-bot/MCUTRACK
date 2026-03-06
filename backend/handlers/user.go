@@ -29,8 +29,8 @@ type UserResponse struct {
 
 func GetUsers(c *gin.Context) {
 	var users []models.User
-	
-	if err := models.DB.Select("id, email, name, role, is_active, created_at").Order("created_at DESC").Find(&users).Error; err != nil {
+
+	if err := models.DB.Select("id, username, name, role, is_active, created_at").Order("created_at DESC").Find(&users).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch users"})
 		return
 	}
@@ -42,7 +42,7 @@ func GetUserByID(c *gin.Context) {
 	id := c.Param("id")
 
 	var user models.User
-	if err := models.DB.Select("id, email, name, role, is_active, created_at").First(&user, "id = ?", id).Error; err != nil {
+	if err := models.DB.Select("id, username, name, role, is_active, created_at").First(&user, "id = ?", id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}

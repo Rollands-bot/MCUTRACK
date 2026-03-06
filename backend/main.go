@@ -20,6 +20,11 @@ func main() {
 	// Auto migrate models
 	models.AutoMigrate()
 
+	// Set Gin mode based on environment
+	if config.IsProduction() {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	// Initialize router
 	r := gin.Default()
 
@@ -70,6 +75,8 @@ func main() {
 			patients.POST("", handlers.CreatePatient)
 			patients.GET("/:id", handlers.GetPatientByID)
 			patients.PUT("/:id", handlers.UpdatePatient)
+			patients.POST("/preview", handlers.PreviewPatients)
+			patients.POST("/import", handlers.ImportPatients)
 		}
 
 		// Visits
